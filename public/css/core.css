@@ -1,0 +1,21 @@
+html, body{
+  background-color: #222;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.home-header{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.home-header__center{
+  text-align: center;
+}
+
+.home-header__center img{
+  display: block;
+  margin: 0 auto;
+}
