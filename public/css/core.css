@@ -11,11 +11,6 @@ html, body{
   min-height: 100vh;
 }
 
-.home-header__center{
+.home-header__container{
   text-align: center;
-}
-
-.home-header__center img{
-  display: block;
-  margin: 0 auto;
 }

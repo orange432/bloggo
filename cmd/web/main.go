@@ -20,6 +20,7 @@ func main() {
 	// Load Routes
 	app.Get("/", handlers.Home)
 	app.Get("/about", handlers.About)
+	app.Get("/articles/:slug", handlers.Article)
 
 	app.Static("/", "./public")
 
