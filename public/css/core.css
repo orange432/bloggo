@@ -14,3 +14,9 @@ html, body{
 .home-header__container{
   text-align: center;
 }
+
+.editor{
+  margin: 20px auto;
+  max-width: 640px;
+  width: 100%;
+}

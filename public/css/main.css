@@ -1,0 +1,17 @@
+.login-form{
+  max-width: 480px;
+  display: block;
+  border: 3px solid slateblue;
+  padding: 10px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.login-form label{
+  display: block;
+  font-size: 20px;
+}
+
+.login-form input{
+  width: 97%;
+}

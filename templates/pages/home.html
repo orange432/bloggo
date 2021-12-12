@@ -1,0 +1,7 @@
+{{template "base" .}}
+
+{{define "content"}}
+  <img src="/public/images/bloggo.png" alt="A pug"/>
+  <h1>This is the new homepage!</h1>
+  <p>Hello: {{index .StringMap "test"}}</p>
+{{end}}

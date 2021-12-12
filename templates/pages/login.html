@@ -1,0 +1,22 @@
+{{template "base"}}
+
+{{define "content"}}
+<div>
+  <h1 class="text-center">Login</h1>
+  <form onsubmit="loginHandler" class="login-form">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username"/>
+    <label for="password">Password</label>
+    <input type="text" id="password" name="password"/>
+    <button type="submit">Login</button>
+  </form>
+</div>
+{{end}}
+
+{{define "js"}}
+  <script>
+    const loginHandler = event => {
+      event.preventDefault();
+    }
+  </script>
+{{end}}

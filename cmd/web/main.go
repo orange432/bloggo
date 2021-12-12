@@ -2,28 +2,47 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
-	"github.com/orange432/bloggo/pkg/handlers"
+	"github.com/orange432/bloggo/pkg/config"
+	"github.com/orange432/bloggo/pkg/render"
 )
 
-const PORT_NUMBER = ":3000"
+const PORT_NUMBER = ":4000"
 
 func main() {
-	engine := html.New("./views", ".html")
 
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
+	err := run()
 
-	// Load Routes
-	app.Get("/", handlers.Home)
-	app.Get("/about", handlers.About)
-	app.Get("/articles/:slug", handlers.Article)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	app.Static("/", "./public")
+	srv := &http.Server{
+		Addr:    PORT_NUMBER,
+		Handler: routes(),
+	}
 
-	fmt.Println("Server started at http://localhost" + PORT_NUMBER)
-	app.Listen(PORT_NUMBER)
+	// Start the server
+	fmt.Println("🚀 Started at http://localhost" + PORT_NUMBER)
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
+
+func run() error {
+	var app config.AppConfig
+
+	// Load the pages
+	tCache, err := render.CreateTemplateCache()
+	if err != nil {
+		log.Fatal("Can't load template cache")
+		return err
+	}
+
+	app.TemplateCache = tCache
+
+	render.NewTemplates(&app)
+
+	return nil
 }
