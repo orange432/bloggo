@@ -25,6 +25,10 @@ func routes() http.Handler {
 	router.Get("/about", handlers.Repo.About)
 	router.Get("/test", handlers.Repo.TestPage)
 	router.Get("/login", handlers.Repo.Login)
+	router.Post("/login", handlers.Repo.LoginPost)
+	router.Route("/articles", func(router chi.Router) {
+		router.Get("/{articleSlug}", handlers.Repo.GetArticle)
+	})
 
 	fileServer := http.FileServer(http.Dir("./public/"))
 

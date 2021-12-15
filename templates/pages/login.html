@@ -3,11 +3,11 @@
 {{define "content"}}
 <div>
   <h1 class="text-center">Login</h1>
-  <form onsubmit="loginHandler" class="login-form">
+  <form id="loginform" class="login-form">
     <label for="username">Username</label>
     <input type="text" id="username" name="username"/>
     <label for="password">Password</label>
-    <input type="text" id="password" name="password"/>
+    <input type="password" id="password" name="password"/>
     <button type="submit">Login</button>
   </form>
 </div>
@@ -17,6 +17,21 @@
   <script>
     const loginHandler = event => {
       event.preventDefault();
-    }
+      fetch("/login",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        })
+      })
+      .then(res=>res.json())
+      .then(data=>{
+        console.log(data);
+      })
+    };
+    document.getElementById("loginform").addEventListener("submit", loginHandler)
   </script>
 {{end}}

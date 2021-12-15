@@ -36,6 +36,7 @@ func run() error {
 	// Load the pages
 	tCache, err := render.CreateTemplateCache()
 	if err != nil {
+		log.Println(err)
 		log.Fatal("Can't load template cache")
 		return err
 	}
