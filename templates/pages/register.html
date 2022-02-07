@@ -3,8 +3,7 @@
 {{define "content"}}
 <div>
   <h1 class="text-center">Register</h1>
-  <form id="registerform" class="login-form">
-    <p id="message" style="text-align: center;"></p>
+  <form onsubmit="registerHandler" class="login-form">
     <label for="username">Username</label>
     <input type="text" id="username" name="username"/>
     <label for="password">Password</label>
@@ -18,36 +17,8 @@
 
 {{define "js"}}
   <script>
-    const usernameField = document.getElementById("username")
-    const passwordField = document.getElementById("password")
-    const confPasswordField = document.getElementById("confpassword")
-    const messageField = document.getElementById("message")
-
     const registerHandler = event => {
       event.preventDefault();
-      if(passwordField.value===confPasswordField.value){
-        messageField.innerHTML = "Password fields do not match!"
-        return
-      }
-      fetch("/register",{
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: usernameField.value,
-          password: passwordField.value
-        })
-      })
-      .then(res=>res.json())
-      .then(data=>{
-        if(data.success=="true"){
-          messageField.innerHTML = data.message
-        }else{
-          messageField.innerHTML = data.error
-        }
-      })
     }
-    document.getElementById("registerform").addEventListener("submit",registerHandler)
   </script>
 {{end}}

@@ -1,49 +1,33 @@
 package main
 
 import (
+	"bloggo/pkg/config"
+	"bloggo/pkg/handlers"
+	"bloggo/pkg/render"
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/orange432/bloggo/pkg/config"
-	"github.com/orange432/bloggo/pkg/render"
+	"github.com/gorilla/mux"
 )
 
-const PORT_NUMBER = ":4000"
+var PORT = ":8000"
 
 func main() {
-
-	err := run()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := &http.Server{
-		Addr:    PORT_NUMBER,
-		Handler: routes(),
-	}
-
-	// Start the server
-	fmt.Println("🚀 Started at http://localhost" + PORT_NUMBER)
-	err = srv.ListenAndServe()
-	log.Fatal(err)
-}
-
-func run() error {
 	var app config.AppConfig
 
-	// Load the pages
 	tCache, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Println(err)
-		log.Fatal("Can't load template cache")
-		return err
+		log.Fatal("Couldn't load template cache")
 	}
-
 	app.TemplateCache = tCache
-
 	render.NewTemplates(&app)
 
-	return nil
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", handlers.Home)
+	r.HandleFunc("/api/save-article", handlers.SaveArticle).Methods("POST")
+
+	fmt.Println(fmt.Sprintf("🚀 Running at http://localhost%s", PORT))
+	log.Fatal(http.ListenAndServe(PORT, r))
 }

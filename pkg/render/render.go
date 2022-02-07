@@ -1,15 +1,14 @@
 package render
 
 import (
+	"bloggo/pkg/config"
+	"bloggo/pkg/models"
 	"bytes"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-
-	"github.com/orange432/bloggo/pkg/config"
-	"github.com/orange432/bloggo/pkg/models"
 )
 
 var app *config.AppConfig

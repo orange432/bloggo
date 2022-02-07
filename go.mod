@@ -1,8 +1,10 @@
-module github.com/orange432/bloggo
+module bloggo
 
 go 1.17
 
 require (
-	github.com/go-chi/chi v1.5.4
-	github.com/go-chi/chi/v5 v5.0.7 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
+	gorm.io/gorm v1.22.5 // indirect
 )
