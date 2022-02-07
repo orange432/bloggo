@@ -25,8 +25,14 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", handlers.Home)
-	r.HandleFunc("/api/save-article", handlers.SaveArticle).Methods("POST")
+	// Page Routes
+	r.HandleFunc("/", handlers.Home).Methods("GET")
+	r.HandleFunc("/login", handlers.LoginPage).Methods("GET")
+	r.HandleFunc("/register", handlers.RegisterPage).Methods("GET")
+
+	// API routes
+	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
+	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
 
 	fmt.Println(fmt.Sprintf("🚀 Running at http://localhost%s", PORT))
 	log.Fatal(http.ListenAndServe(PORT, r))

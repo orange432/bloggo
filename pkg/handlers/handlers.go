@@ -3,21 +3,16 @@ package handlers
 import (
 	"bloggo/pkg/models"
 	"bloggo/pkg/render"
+	"bloggo/pkg/responder"
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
-
-type Success struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-}
-
-type Login struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-	Session string `json:"session"`
-}
 
 func Home(w http.ResponseWriter, r *http.Request) {
 
@@ -45,14 +40,135 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "register.html", &models.TemplateData{})
 }
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(Success{Success: true})
+type LoginDetails struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-func SaveArticle(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(Success{Success: true})
+type JWTClaims struct {
+	UserId   uint   `json: "userid"`
+	Username string `json: "username"`
+	jwt.StandardClaims
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	var l LoginDetails
+
+	// Get the request body
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&l)
 	if err != nil {
-		log.Fatalf("error while encoding JSON")
+		responder.Error(w, "Invalid login data.")
+		return
 	}
+
+	db, err := gorm.Open(sqlite.Open("bloggo.db"), &gorm.Config{})
+	if err != nil {
+		log.Println(err)
+		responder.Error(w, "Failed to connect to database")
+		return
+	}
+	db.AutoMigrate(&UserModel{})
+
+	// Get user
+	var user UserModel
+	result := db.First(&user, "Username = ?", l.Username)
+
+	// User wasn't found
+	if result.RowsAffected == 0 {
+		responder.Error(w, "User does not exist")
+		return
+	}
+
+	// Check password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(l.Password))
+	if err != nil {
+		responder.Error(w, "Invalid Username/Password.")
+		return
+	}
+
+	// Password and username is valid, create token
+	claims := JWTClaims{
+		UserId:   user.UserId,
+		Username: user.Username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: 15000,
+			Issuer:    "Bloggo",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte("SECRET"))
+
+	responder.Session(w, signedToken)
+}
+
+type UserModel struct {
+	gorm.Model
+	UserId      uint   `gorm:"primaryKey;autoIncrement"`
+	Username    string `gorm:"unique"`
+	Password    string
+	DisplayName string
+}
+
+type UserDetails struct {
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	DisplayName string `json:"displayname"`
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	var u UserDetails
+
+	// Get the request body
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&u)
+	if err != nil {
+		responder.Error(w, "Invalid registration data.")
+		return
+	}
+
+	db, err := gorm.Open(sqlite.Open("bloggo.db"), &gorm.Config{})
+	if err != nil {
+		log.Println(err)
+		responder.Error(w, "Failed to connect to database")
+		return
+	}
+	db.AutoMigrate(&UserModel{})
+
+	// Check if user exists
+	var user UserModel
+	result := db.First(&user, "Username = ?", u.Username)
+
+	if result.RowsAffected != 0 {
+		responder.Error(w, "Username already exists.")
+		return
+	}
+
+	// Hash password
+	passwordBytes := []byte(u.Password)
+	hashedPassword, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
+	if err != nil {
+		log.Println(err)
+		responder.Error(w, "Error while hashing password.")
+		return
+	}
+
+	details := UserModel{
+		Username:    u.Username,
+		Password:    string(hashedPassword),
+		DisplayName: u.DisplayName,
+	}
+
+	res := db.Create(&details)
+
+	if res.Error != nil {
+		log.Println(res.Error)
+		responder.Error(w, "Error adding data to the database")
+		return
+	}
+	responder.Success(w)
 }
