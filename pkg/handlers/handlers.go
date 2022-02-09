@@ -1,12 +1,16 @@
 package handlers
 
 import (
+	"bloggo/pkg/auth"
+	"bloggo/pkg/middlewares"
 	"bloggo/pkg/models"
 	"bloggo/pkg/render"
 	"bloggo/pkg/responder"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -32,8 +36,24 @@ func About(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "about.html", &models.TemplateData{})
 }
 
+func Dashboard(w http.ResponseWriter, r *http.Request) {
+	err := middlewares.VerifyToken(w, r)
+	if err != nil {
+		render.RenderTemplate(w, "unauthorized.html", &models.TemplateData{})
+		return
+	}
+	// Token is valid display dashboard.
+	render.RenderTemplate(w, "dashboard.html", &models.TemplateData{})
+}
+
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "login.html", &models.TemplateData{})
+}
+
+func EditorPage(w http.ResponseWriter, r *http.Request) {
+	cookie, _ := r.Cookie("jwt")
+	fmt.Println(cookie)
+	render.RenderTemplate(w, "editor.html", &models.TemplateData{})
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
@@ -43,12 +63,6 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 type LoginDetails struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type JWTClaims struct {
-	UserId   uint   `json: "userid"`
-	Username string `json: "username"`
-	jwt.StandardClaims
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -89,18 +103,21 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Password and username is valid, create token
-	claims := JWTClaims{
+	claims := auth.JWTClaims{
 		UserId:   user.UserId,
 		Username: user.Username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 15000,
+			ExpiresAt: time.Now().Add(12 * time.Hour).UnixMicro(),
 			Issuer:    "Bloggo",
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString([]byte("SECRET"))
+	signedToken, err := token.SignedString([]byte(auth.JWT_SECRET))
+
+	if err != nil {
+		responder.Error(w, "Error signing token!")
+	}
 
 	responder.Session(w, signedToken)
 }
@@ -121,7 +138,6 @@ type UserDetails struct {
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	var u UserDetails
-
 	// Get the request body
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -171,4 +187,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responder.Success(w)
+}
+
+func Editor(w http.ResponseWriter, r *http.Request) {
+
 }

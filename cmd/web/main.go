@@ -29,10 +29,14 @@ func main() {
 	r.HandleFunc("/", handlers.Home).Methods("GET")
 	r.HandleFunc("/login", handlers.LoginPage).Methods("GET")
 	r.HandleFunc("/register", handlers.RegisterPage).Methods("GET")
+	r.HandleFunc("/dashboard", handlers.Dashboard).Methods("GET")
 
 	// API routes
 	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
+
+	fileServer := http.FileServer(http.Dir("./public"))
+	r.PathPrefix("/").Handler(http.StripPrefix("/public", fileServer))
 
 	fmt.Println(fmt.Sprintf("🚀 Running at http://localhost%s", PORT))
 	log.Fatal(http.ListenAndServe(PORT, r))

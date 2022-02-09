@@ -3,14 +3,25 @@
 {{define "content"}}
 <div>
   <h1 class="text-center">Register</h1>
-  <form onsubmit="registerHandler" class="login-form">
-    <label for="username">Username</label>
-    <input type="text" id="username" name="username"/>
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password"/>
-    <label for="confpassword">Confirm Password</label>
-    <input type="password" id="confpassword" name="confpassword"/>
-    <button type="submit">Register</button>
+  <p class="error-message" id="error"></p>
+  <form onsubmit="registerHandler(event)" class="login-form">
+    <div class="mb-3">
+      <label class="form-label" for="username">Username</label>
+      <input type="text" required class="form-control" id="username" name="username"/>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="displayname">Display Name</label>
+      <input type="text" required class="form-control" id="displayname" name="displayname"/>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="password">Password</label>
+      <input type="password" required class="form-control" id="password" name="password"/>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="confpassword">Confirm Password</label>
+      <input type="password" required class="form-control" id="confpassword" name="confpassword"/>
+    </div>
+    <button class="btn btn-secondary" type="submit">Register</button>
   </form>
 </div>
 {{end}}
@@ -19,6 +30,35 @@
   <script>
     const registerHandler = event => {
       event.preventDefault();
+      const username = document.getElementById("username").value;
+      const displayname = document.getElementById("displayname").value;
+      const password = document.getElementById("password").value;
+      const confpassword = document.getElementById("confpassword").value;
+      if(password != confpassword) return document.getElementById("error").innerHTML = "Passwords do not match!"
+      fetch("/api/register",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          displayname
+        })
+      })
+      .then(r=>r.json())
+      .then(data=>{
+        console.log(data)
+        if(data.success){
+          cuteAlert({type: "success", title:"Success!", message: "User created successfully.",buttontext: "OK"})
+          .then(()=>{window.location.href = "/login"})
+        }else{
+          document.getElementById("error").innerHTML = data.error
+        }
+      })
+      .catch(err=>{
+        document.getElementById("error").innerHTML = "Error: " + err
+      })
     }
   </script>
 {{end}}
