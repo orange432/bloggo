@@ -36,9 +36,7 @@
       })
       .then(r=>r.json())
       .then(data=>{
-        console.log(data)
         if(data.success){
-          localStorage.setItem("jwt", data.session)
           window.location.href = "/dashboard"
         }else{
           document.getElementById("error").innerHTML = data.error

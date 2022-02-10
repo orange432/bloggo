@@ -1,5 +1,6 @@
 package models
 
 type TemplateData struct {
-	StringMap map[string]string
+	StringMap  map[string]string
+	ArticleMap map[string][2]string
 }

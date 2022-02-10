@@ -50,7 +50,7 @@
       .then(data=>{
         console.log(data)
         if(data.success){
-          cuteAlert({type: "success", title:"Success!", message: "User created successfully.",buttontext: "OK"})
+          cuteAlert({type: "success", title:"Success!", message: "User created successfully.",buttontext: "OK",img: "img/error.svg"})
           .then(()=>{window.location.href = "/login"})
         }else{
           document.getElementById("error").innerHTML = data.error
