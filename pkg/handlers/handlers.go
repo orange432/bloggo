@@ -140,7 +140,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 type UserModel struct {
 	gorm.Model
-	UserId      uint   `gorm:"primaryKey;autoIncrement"`
+	UserId      int    `gorm:"primaryKey;autoIncrement"`
 	Username    string `gorm:"unique"`
 	Password    string
 	DisplayName string
