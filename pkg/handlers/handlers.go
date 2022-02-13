@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -103,7 +104,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Get user
 	var user UserModel
-	result := db.First(&user, "Username = ?", l.Username)
+	result := db.First(&user, "username = ?", l.Username)
 
 	// User wasn't found
 	if result.RowsAffected == 0 {
@@ -313,7 +314,7 @@ func LoadArticle(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user exists
 	var article Article
-	result := db.First(&article, "ArticleId = ?", a.ArticleId)
+	result := db.First(&article, "article_id = ?", a.ArticleId)
 
 	if result.RowsAffected != 0 {
 		responder.Error(w, "Article doesn't exist.")
@@ -327,4 +328,57 @@ func LoadArticle(w http.ResponseWriter, r *http.Request) {
 		Title:     article.Title,
 		Content:   article.Content,
 	})
+}
+
+type ArticleList struct {
+	Articles []ArticleDetails `json: "articles"`
+}
+
+func ListArticles(w http.ResponseWriter, r *http.Request) {
+	db, err := gorm.Open(sqlite.Open("bloggo.db"), &gorm.Config{})
+	if err != nil {
+		log.Println(err)
+		responder.Error(w, "Failed to connect to database")
+		return
+	}
+	db.AutoMigrate(&Article{})
+
+	// Get Articles
+	var articles []Article
+	db.Find(&articles)
+
+	// Convert into correct struct
+	var articleList []ArticleDetails
+	for _, val := range articles {
+		articleList = append(articleList, ArticleDetails{
+			ArticleId: val.ArticleId,
+			Title:     val.Title,
+			Content:   val.Content,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ArticleList{Articles: articleList})
+
+}
+
+func ArticlePage(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	db, err := gorm.Open(sqlite.Open("bloggo.db"), &gorm.Config{})
+	if err != nil {
+		log.Println(err)
+		responder.Error(w, "Failed to connect to database")
+		return
+	}
+	db.AutoMigrate(&Article{})
+
+	var article Article
+	result := db.First(&article, "article_id = ?", params["id"])
+	if result.RowsAffected == 0 {
+		render.RenderTemplate(w, "404.html", &models.TemplateData{})
+	}
+	aMap := make(map[string]string)
+	aMap["title"] = article.Title
+	aMap["content"] = article.Content
+	render.RenderTemplate(w, "article.html", &models.TemplateData{StringMap: aMap})
 }

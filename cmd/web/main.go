@@ -31,11 +31,14 @@ func main() {
 	r.HandleFunc("/register", handlers.RegisterPage).Methods("GET")
 	r.HandleFunc("/dashboard", handlers.Dashboard).Methods("GET")
 	r.HandleFunc("/editor", handlers.EditorPage).Methods("GET")
+	r.HandleFunc("/articles", handlers.Home).Methods("GET")
+	r.HandleFunc("/articles/{id}", handlers.ArticlePage).Methods("GET")
 
 	// API routes
 	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/api/editor", handlers.Editor).Methods("POST")
+	r.HandleFunc("/api/articles", handlers.ListArticles).Methods("GET")
 
 	fileServer := http.FileServer(http.Dir("./public"))
 	r.PathPrefix("/").Handler(http.StripPrefix("/public", fileServer))
